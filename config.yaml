@@ -1,0 +1,132 @@
+# 연료펌프 모듈 검사 시스템 설정
+# Fuel Pump Module Inspection System Configuration
+
+system:
+  name: "연료펌프 모듈 검사기"
+  line: "LINE-01"
+  version: "1.0.0"
+
+camera:
+  top:
+    id: 0
+    resolution: [1920, 1080]
+    exposure: 10000
+    fps: 30
+  side:
+    id: 1
+    resolution: [1920, 1080]
+    exposure: 10000
+    fps: 30
+
+inspection:
+  # 외관 결함 설정
+  defect:
+    enabled: true
+    min_defect_area: 50        # 최소 결함 크기 (픽셀)
+    scratch_threshold: 30       # 스크래치 감도
+    crack_threshold: 25         # 균열 감도
+    dent_threshold: 30          # 찍힘 감도
+    contamination_threshold: 20 # 이물질 감도
+
+  # 바코드 설정
+  barcode:
+    enabled: true
+    roi: [100, 50, 300, 150]   # 바코드 예상 위치 [x, y, w, h]
+    required_prefix: "FP"       # 바코드 시작 문자
+    min_length: 10              # 최소 바코드 길이
+    position_tolerance: 50      # 위치 허용 오차 (픽셀)
+
+  # 이종품 설정
+  variant:
+    enabled: true
+    similarity_threshold: 0.85  # 유사도 임계값
+    color_tolerance: 20         # 색상 허용 오차
+    shape_tolerance: 0.3        # 형상 허용 오차
+
+# 등록된 정품 부품 목록
+valid_parts:
+  - id: "FP-2024-A01"
+    name: "연료펌프 모듈 Type-A"
+    color: "black"
+    description: "표준형 연료펌프 모듈"
+  - id: "FP-2024-B01"
+    name: "연료펌프 모듈 Type-B"
+    color: "gray"
+    description: "고급형 연료펌프 모듈"
+  - id: "FP-2024-C01"
+    name: "연료펌프 모듈 Type-C"
+    color: "black"
+    description: "경량형 연료펌프 모듈"
+
+# GPIO 설정 (PLC 연동)
+gpio:
+  enabled: true
+  trigger_input: 17      # 검사 트리거 신호 (BCM 핀 번호)
+  ok_output: 27          # 양품 신호
+  ng_output: 22          # 불량 신호
+  buzzer: 23             # 경보음
+  signal_duration: 0.5   # 신호 유지 시간 (초)
+
+# 데이터베이스 설정
+database:
+  enabled: true
+  type: "sqlite"         # sqlite, mysql, postgresql
+  path: "logs/inspection.db"
+  # MySQL/PostgreSQL 설정 (선택)
+  # host: "localhost"
+  # port: 3306
+  # user: "inspection"
+  # password: "password"
+  # database: "fuel_pump_inspection"
+
+# 로깅 설정
+logging:
+  level: "INFO"          # DEBUG, INFO, WARNING, ERROR
+  save_images: true      # NG 이미지 저장 여부
+  save_all_images: false # 모든 이미지 저장 여부
+  log_dir: "logs/inspection_results"
+  max_log_days: 30       # 로그 보관 기간 (일)
+
+# 딥러닝 설정
+deep_learning:
+  enabled: true                    # 딥러닝 검사 사용 여부
+  engine: "onnx"                   # 추론 엔진 (hailo, onnx, pytorch, opencv_dnn)
+  use_instead_of_classic: false    # true: 딥러닝만 사용, false: 기존 검사와 병행
+
+  # 결함 검출 모델 (YOLOv8)
+  detection_model: "models/fuel_pump_defect.onnx"  # 또는 .hef (Hailo)
+  confidence_threshold: 0.5        # 신뢰도 임계값
+  nms_threshold: 0.4               # NMS 임계값
+  input_size: [640, 640]           # 입력 이미지 크기
+
+  # 결함 클래스 목록
+  defect_classes:
+    - scratch          # 스크래치
+    - dent             # 찍힘
+    - crack            # 균열
+    - contamination    # 이물질
+    - burr             # 버(Burr)
+    - missing_part     # 부품 누락
+
+  # 부품 분류 모델 (선택)
+  classification_model: "models/fuel_pump_classifier.onnx"
+  classification_input_size: [224, 224]
+  part_classes:
+    - "FP-2024-A01"    # Type-A
+    - "FP-2024-B01"    # Type-B
+    - "FP-2024-C01"    # Type-C
+
+  # 이상 탐지 모델 (선택)
+  anomaly_model: null              # "models/fuel_pump_anomaly.onnx"
+  anomaly_threshold: 0.5           # 이상 점수 임계값
+
+# 알림 설정
+notification:
+  enabled: false
+  email:
+    smtp_server: "smtp.example.com"
+    smtp_port: 587
+    sender: "inspection@example.com"
+    recipients:
+      - "quality@example.com"
+    ng_threshold: 5      # 연속 NG 발생 시 알림

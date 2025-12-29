@@ -1,0 +1,33 @@
+# 연료펌프 모듈 검사 시스템 의존성
+# Fuel Pump Inspection System Dependencies
+
+# 필수 패키지
+numpy>=1.21.0
+opencv-python>=4.5.0
+PyYAML>=6.0
+
+# 바코드 인식
+pyzbar>=0.1.9
+
+# 딥러닝 (YOLOv8 학습/추론)
+ultralytics>=8.0.0        # YOLOv8
+onnxruntime>=1.15.0       # ONNX 추론 엔진
+# torch>=2.0.0            # PyTorch (선택, GPU 학습 시)
+
+# Raspberry Pi AI Kit (Hailo)
+# hailo-platform           # Hailo SDK (Pi에서 별도 설치)
+
+# OCR (선택)
+# pytesseract>=0.3.10
+
+# Raspberry Pi 전용 (Pi에서만 설치)
+# picamera2>=0.3.0
+# RPi.GPIO>=0.7.0
+
+# 데이터베이스 (선택)
+# mysql-connector-python>=8.0.0
+# psycopg2-binary>=2.9.0
+
+# 웹 대시보드 (선택)
+# flask>=2.0.0
+# flask-socketio>=5.0.0
